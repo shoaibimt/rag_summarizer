@@ -6,4 +6,4 @@ transformers
 sentence-transformers
 faiss-cpu
 pymupdf
-
+pdfminer.six
