@@ -1,6 +1,7 @@
 # requirements.txt
 streamlit
 langchain
+langchain-community
 transformers
 sentence-transformers
 faiss-cpu
