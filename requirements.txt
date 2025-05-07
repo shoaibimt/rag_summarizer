@@ -4,4 +4,3 @@ langchain
 transformers
 sentence-transformers
 faiss-cpu
-pypdf
