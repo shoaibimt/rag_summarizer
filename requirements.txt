@@ -1,0 +1,7 @@
+# requirements.txt
+streamlit
+langchain
+transformers
+sentence-transformers
+faiss-cpu
+pypdf
