@@ -10,6 +10,10 @@ from transformers import pipeline
 import os
 from utils import save_uploaded_file, extract_text
 
+import streamlit as st
+from transformers import pipeline
+from utils import save_uploaded_file, extract_text
+
 # Streamlit UI
 st.set_page_config(page_title="RAGify: AI-Powered Summarizer")
 st.title("📄 RAGify: Document Summarizer using Transformers")
@@ -19,29 +23,21 @@ uploaded_file = st.file_uploader("Upload a .txt or .pdf file", type=["txt", "pdf
 if uploaded_file:
     file_path = save_uploaded_file(uploaded_file)
     raw_text = extract_text(file_path)
-
     st.success("✅ File processed successfully")
 
-    # Chunk the text
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    texts = splitter.create_documents([raw_text])
-
-    # Embed and create vector store
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectordb = FAISS.from_documents(texts, embeddings)
-
-    # Load transformer summarizer model
-    summarizer_pipe = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
-    llm = HuggingFacePipeline(pipeline=summarizer_pipe)
-
-    # Create RAG chain
-    rag_chain = RetrievalQA.from_chain_type(llm=llm, retriever=vectordb.as_retriever())
+    # Load summarization pipeline
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
 
     if st.button("Summarize File"):
-        query = "Summarize the entire document briefly."
-        output = rag_chain.run(query)
-        st.subheader("📌 Summary:")
-        st.write(output)
+        # Split long text if needed
+        max_chunk_len = 1000
+        chunks = [raw_text[i:i+max_chunk_len] for i in range(0, len(raw_text), max_chunk_len)]
+        summarized_chunks = []
 
-        # Optional: Show total tokens used
-        st.caption(f"Document split into {len(texts)} chunks.")
+        for chunk in chunks:
+            summary = summarizer(chunk, max_length=150, min_length=30, do_sample=False)[0]['summary_text']
+            summarized_chunks.append(summary)
+
+        full_summary = "\n\n".join(summarized_chunks)
+        st.subheader("📌 Summary:")
+        st.write(full_summary)
