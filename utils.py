@@ -1,7 +1,7 @@
 # utils.py
 import os
 import tempfile
-from langchain.document_loaders import TextLoader, PyPDFLoader
+import fitz  # PyMuPDF
 
 def save_uploaded_file(uploaded_file):
     temp_dir = tempfile.gettempdir()
@@ -12,11 +12,15 @@ def save_uploaded_file(uploaded_file):
 
 def extract_text(file_path):
     if file_path.endswith(".txt"):
-        loader = TextLoader(file_path)
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+
     elif file_path.endswith(".pdf"):
-        loader = PyPDFLoader(file_path)
+        text = ""
+        with fitz.open(file_path) as doc:
+            for page in doc:
+                text += page.get_text()
+        return text
+
     else:
         raise ValueError("Unsupported file type")
-
-    documents = loader.load()
-    return "\n".join(doc.page_content for doc in documents)
